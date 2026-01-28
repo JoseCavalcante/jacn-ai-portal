@@ -1,0 +1,309 @@
+/* premium.css - JACN AI SaaS Design System */
+
+/* Typography Overhaul */
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-light: rgba(226, 232, 240, 0.8);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stApp>div {
+    animation: fadeIn 0.5s ease-out;
+}
+
+html,
+body,
+[class*="st-"] {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text-main);
+}
+
+h1,
+h2,
+h3,
+h4,
+.stHeader h1 {
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text-main);
+}
+
+/* SaaS Background */
+.stApp {
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+}
+
+/* Glass Login Card Reverted */
+.stForm {
+    background: #ffffff !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 20px !important;
+    padding: 2rem !important;
+}
+
+/* Ajuste para colar no topo */
+.saas-card h3 {
+    margin-top: 0 !important;
+    margin-bottom: 0.8rem !important;
+    color: #0f172a;
+}
+
+.saas-card p {
+    margin-bottom: 1.5rem !important;
+}
+
+.metric-card {
+    background-color: transparent !important;
+}
+
+.block-container {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+}
+
+header {
+    background-color: transparent !important;
+}
+
+/* Sidebar Fixed Width and No Scrollbars */
+[data-testid="stSidebar"] {
+    min-width: 280px !important;
+    max-width: 280px !important;
+    width: 280px !important;
+    overflow: hidden !important;
+}
+
+[data-testid="stSidebar"]>div {
+    overflow: hidden !important;
+}
+
+/* Hide Sidebar Toggle/Collapse Button */
+[data-testid="stSidebarCollapseButton"] {
+    display: none !important;
+}
+
+/* Inputs and Text Areas */
+div[data-baseweb="input"],
+[data-baseweb="base-input"],
+textarea {
+    background-color: #ffffff !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+}
+
+input {
+    color: var(--text-main) !important;
+}
+
+/* Placeholder visibility */
+::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Labels visibility */
+.stTextInput label,
+.stTextArea label,
+.stSelectbox label {
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+}
+
+/* Modern Glass Header */
+.stHeader {
+    background: rgba(30, 27, 75, 0.95);
+    backdrop-filter: blur(12px);
+    color: #ffffff;
+    padding: 2.5rem 3.5rem;
+    border-radius: 30px;
+    margin-bottom: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(30, 27, 75, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stHeader::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Main Grid and Layout */
+.stMainBlockContainer {
+    max-width: 1200px !important;
+    padding-top: 2rem !important;
+}
+
+/* Premium SaaS Cards */
+.saas-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.saas-card.standard-height {
+    height: 380px !important;
+}
+
+.saas-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+
+.saas-card .icon-container {
+    width: 48px;
+    height: 48px;
+    background: #eff6ff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+}
+
+.saas-card h3 {
+    font-size: 1.25rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.saas-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2rem !important;
+}
+
+.metric-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 1.2rem !important;
+    text-align: left !important;
+    height: auto !important;
+    min-height: 100px !important;
+}
+
+.metric-card .metric-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.metric-card .metric-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+/* Neon Accents and Badges */
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-process {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.badge-new {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+/* Buttons - Technological Gradient and Glow */
+div.stButton>button {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 700 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+div.stButton>button:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+div.stButton>button:active {
+    transform: translateY(0);
+}
+
+
+/* Glass Login Helper (Styles now handled via local injection) */
+.login-card-anchor {
+    display: none;
+}
+
+/* Hide Streamlit Default Menu and Footer */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+/* Sidebar toggle fix: removing hidden visibility from header */
+header {
+    background-color: transparent !important;
+}
