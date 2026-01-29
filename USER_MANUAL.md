@@ -53,7 +53,8 @@ Esta é a funcionalidade mais poderosa do portal, permitindo que você faça per
 ## 4. Gestão de Histórico e Feedback
 Sua interação ajuda a plataforma a melhorar constantemente.
 
-- **Histórico:** Revise conversas anteriores e exporte os dados para CSV se necessário para auditorias ou relatórios.
+- **Histórico:** Revise conversas anteriores e exporte os dados para **CSV** ou **PDF** se necessário para auditorias, relatórios ou compartilhamento externo.
+- **Relatórios PDF:** Clique no botão "📄 Exportar PDF" para gerar um documento formatado com todas as suas interações filtradas.
 - **Feedback (👍/👎):** Em cada resposta da IA no RAG Hub, você encontrará botões de feedback. 
     - Use o **Thumbs Up (👍)** se a resposta foi precisa e útil.
     - Use o **Thumbs Down (👎)** se a resposta foi incorreta ou incompleta.
@@ -65,7 +66,8 @@ Sua interação ajuda a plataforma a melhorar constantemente.
 Se você for um administrador do seu Tenant (organização), terá acesso a:
 
 - **Dashboard Avançado:** Visualize o uso de tokens da sua equipe.
-- **Gestão de Usuários:** Crie novas contas para seus colaboradores ou desative contas antigas.
+- **Gestão de Usuários:** Crie novas contas para seus colaboradores, resete senhas e gerencie permissões.
+- **Painel de Monitoramento:** Visualize gráficos detalhados de "Top Usuários" para identificar quem mais utiliza a plataforma (Geração de Texto vs. Consultas RAG).
 - **Limites de Uso:** Monitore quantos documentos e usuários sua organização ainda pode adicionar conforme seu plano.
 
 ---

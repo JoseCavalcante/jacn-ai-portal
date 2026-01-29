@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: .
+    container_name: jacn-backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./app_v2.db:/app/app_v2.db
+      - ./data:/app/data
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    ports:
+      - "8000:8000"
+    restart: always
+
+  frontend:
+    build: .
+    container_name: jacn-frontend
+    command: streamlit run jacn_ai_portal.py --server.port 8501 --server.address 0.0.0.0
+    environment:
+      - API_URL=http://backend:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    restart: always

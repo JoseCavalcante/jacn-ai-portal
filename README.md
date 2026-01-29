@@ -11,6 +11,10 @@ O **JACN AI Portal** é uma plataforma corporativa avançada de inteligência ar
 - **Isolamento Multi-tenant**: Separação física e lógica de diretórios de arquivos e dados no banco por Tenant e Usuário.
 - **Design de Elite**: Interface moderna com glassmorphism, tipografia 'Plus Jakarta Sans' e UX otimizada para produtividade.
 - **Dashboard & Analytics**: Monitoramento de métricas de uso, latência de API e status de planos/limites.
+- **Monitoramento Administrativo**: Painel exclusivo para admins auditarem o volume de interações (Prompts/RAG) por colaborador.
+- **Relatórios em PDF**: Exportação profissional do histórico de conversas e prompts.
+- **Alta Disponibilidade**: Mecanismo de Health Check que garante feedback visual imediato em caso de instabilidade da rede.
+
 
 ## 🏗️ Arquitetura Técnica
 

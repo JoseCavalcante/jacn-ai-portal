@@ -21,7 +21,7 @@
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px);
     }
 
     to {
@@ -30,8 +30,46 @@
     }
 }
 
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+}
+
+.hover-scale {
+    transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.02);
+}
+
 .stApp>div {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html,
@@ -136,16 +174,20 @@ input {
 
 /* Modern Glass Header */
 .stHeader {
-    background: rgba(30, 27, 75, 0.95);
-    backdrop-filter: blur(12px);
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
     color: #ffffff;
     padding: 2.5rem 3.5rem;
     border-radius: 30px;
     margin-bottom: 2rem;
-    box-shadow: 0 25px 50px -12px rgba(30, 27, 75, 0.25);
+    box-shadow: 0 25px 50px -12px rgba(30, 27, 75, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.stHeader:hover {
+    transform: scale(1.01);
 }
 
 .stHeader::after {
@@ -252,6 +294,7 @@ input {
 .badge-active {
     background: #dcfce7;
     color: #15803d;
+    animation: pulse 2s infinite;
 }
 
 .badge-process {
@@ -262,6 +305,26 @@ input {
 .badge-new {
     background: #fef3c7;
     color: #b45309;
+}
+
+/* Custom Source Card for RAG */
+.source-card {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    cursor: default;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.source-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 /* Buttons - Technological Gradient and Glow */

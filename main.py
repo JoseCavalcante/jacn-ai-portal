@@ -19,3 +19,8 @@ app.add_event_handler("startup", startup_event)
 app.include_router(auth_router)
 app.include_router(rag_router)
 app.include_router(prompt_router)
+
+@app.get("/health")
+def health_check():
+    """Endpoint leve para verificação de status global"""
+    return {"status": "ok", "service": "JACN AI Portal API"}

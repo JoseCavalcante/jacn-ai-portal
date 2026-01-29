@@ -1,5 +1,5 @@
 import streamlit as st
-from components.ui import saas_card, metric_card
+from components.ui import metric_card, saas_card
 from components.visualizations import render_usage_charts, render_storage_chart
 
 def render_dashboard(service, logout_fn):

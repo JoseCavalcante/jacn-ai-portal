@@ -1,7 +1,9 @@
 import streamlit as st
+from components.ui import saas_card
 import time
 
 def render_rag_hub(service):
+
     st.markdown(f"""
     <div style="margin-bottom: 2.5rem;">
         <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">📚 RAG Hub</h1>
@@ -31,11 +33,13 @@ def render_rag_hub(service):
                                 <span class="status-badge badge-active">Pág. {doc['page']}</span>
                             </div>
                         """
+                        # CALLING THE STANDARDIZED saas_card
                         saas_card(
-                            "Resultado da Busca", 
+                            doc['source'], 
                             doc['content'], 
                             footer_html=footer,
-                            adaptive_height=True
+                            adaptive_height=True,
+                            extra_classes="animate-slide-up hover-scale"
                         )
                 elif res:
                     detail = res.json().get("detail", res.text) if res.status_code != 500 else "Erro interno no servidor"
@@ -43,7 +47,8 @@ def render_rag_hub(service):
                 else:
                     st.error(f"Erro de conexão: Não foi possível conectar ao serviço.")
             except Exception as e:
-                st.error(f"Erro de conexão: {e}")
+                # Add Debug Info
+                st.error(f"Erro de conexão (DEBUG: {type(e).__name__}): {e}")
 
     with tab2:
         st.subheader("Chat com Documentos")
@@ -92,12 +97,17 @@ def render_rag_hub(service):
                             for idx, s in enumerate(data["sources"]):
                                 with source_cols[idx % 3]:
                                     st.markdown(f"""
-                                    <div style="padding: 1rem; border-radius: 12px; background: white; border: 1px solid var(--border-light); box-shadow: 0 2px 4px rgba(0,0,0,0.02); height: 100%;">
-                                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary); display: flex; align-items: center; gap: 6px; margin-bottom: 0.5rem;">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    <div class="source-card hover-scale animate-slide-up">
+                                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-bottom: 0.8rem;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                             {s['source']}
                                         </div>
-                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Fragmento da Página <b>{s['page']}</b></div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+                                            Trecho relevante extraído da <b>Página {s['page']}</b> do documento indexado.
+                                        </div>
+                                        <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                                            <span class="status-badge badge-process" style="font-size: 0.65rem;">Vetor ID: {idx+1}</span>
+                                        </div>
                                     </div>
                                     """, unsafe_allow_html=True)
                         

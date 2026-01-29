@@ -4,9 +4,11 @@ from service.portal_service import PortalService
 from components.auth import login_page, logout
 from components.dashboard import render_dashboard
 from components.prompt_hub import render_prompt_hub
+from components.prompt_hub import render_prompt_hub
 from components.rag_hub import render_rag_hub
 from components.user_mgmt import render_user_management, render_password_change
 from components.history import render_history, render_subscription
+from components.ui import render_offline_state
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
@@ -17,7 +19,7 @@ st.set_page_config(
 )
 
 # Configuração da API
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 service = PortalService(API_URL)
 
 # --- DESIGN SYSTEM ---
@@ -48,6 +50,10 @@ if "rag_threshold" not in st.session_state:
 
 # --- NAVEGAÇÃO PRINCIPAL ---
 def main():
+    # Health Check da API
+    if not service.check_health():
+        render_offline_state()
+
     if not st.session_state.token:
         login_page(service)
     else:

@@ -1,10 +1,12 @@
 import os
 import glob
 import logging
+from typing import Union
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from core.utils import get_tenant_path
 
 # OCR opcional
 try:
@@ -53,103 +55,97 @@ def garantir_pdf_textual(caminho_pdf: str) -> str:
         return caminho_pdf
 
 
-def init_search(tenant_id: str = None, username: str = None, force_reload=False):
+def init_search(tenant_id: Union[str, int] = None, username: str = None, force_reload=False):
     """
-    Inicializa ou recarrega o FAISS para um usuário específico dentro de um inquilino.
-    Se tenant_id for None, inicializa a base global (data/docs).
-    Se tenant_id e username forem str/int, inicializa a base do usuário (data/uploads/{tenant_id}/{username}).
+    Inicializa ou recarrega o FAISS para um usuário (data/uploads/{tenant_id}/{username}) 
+    ou globalmente (data/docs).
     """
     global _tenant_stores, _global_store
     
-    # Normaliza tenant_id e username para string
-    tid_str = str(tenant_id) if tenant_id is not None else None
-    usr_str = str(username) if username is not None else None
+    # 1. Normalização de Entradas
+    t_id = str(tenant_id) if tenant_id is not None else None
+    u_name = str(username) if username is not None else None
     
-    # Chave única para o índice do usuário: tenant_id + username
-    if tid_str and usr_str:
-        store_key = f"{tid_str}_{usr_str}"
-        # Tenta encontrar pasta ID_Nome ou apenas ID
-        pattern = os.path.join("data", "uploads", f"{tid_str}_*")
-        matching = glob.glob(pattern)
-        tenant_base = matching[0] if matching else os.path.join("data", "uploads", tid_str)
-        docs_paths = [os.path.join(tenant_base, usr_str)]
-    elif tid_str:
-        store_key = tid_str
-        pattern = os.path.join("data", "uploads", f"{tid_str}_*")
-        matching = glob.glob(pattern)
-        tenant_base = matching[0] if matching else os.path.join("data", "uploads", tid_str)
+    # 2. Resolução de Caminhos e Chaves
+    base_dir = os.path.abspath(os.getcwd())
+    data_dir = os.path.join(base_dir, "data")
+    
+    if t_id and u_name:
+        store_key = f"{t_id}_{u_name}"
+        tenant_base = get_tenant_path(t_id)
+        docs_paths = [os.path.join(tenant_base, u_name)]
+    elif t_id:
+        store_key = t_id
+        tenant_base = get_tenant_path(t_id)
         docs_paths = [tenant_base]
     else:
         store_key = "global"
-        docs_paths = ["data/docs"]
+        docs_paths = [os.path.join(data_dir, "docs")]
 
-    if tid_str:
+    # 3. Cache Check
+    if t_id:
         if store_key in _tenant_stores and not force_reload:
             return
     else:
         if _global_store is not None and not force_reload:
             return
 
-    logging.info(f"--- INIT SEARCH DEBUG ---")
-    logging.info(f"Store Key: {store_key}")
-    logging.info(f"Docs Paths: {docs_paths}")
-
+    # 4. Carregamento de Documentos
     documents = []
     for path in docs_paths:
         if not os.path.exists(path):
-            logging.info(f"Path não existe, criando: {path}")
-            os.makedirs(path, exist_ok=True)
+            logging.info(f"Diretório não existe: {path}")
             continue
             
-        files = os.listdir(path)
-        logging.info(f"Arquivos em {path}: {files}")
-        
-        for file in files:
-            if file.lower().endswith(".pdf"):
+        for file in os.listdir(path):
+            if file.lower().endswith(".pdf") and not file.lower().endswith("_ocr.pdf"):
                 caminho_pdf = os.path.join(path, file)
-                caminho_pdf = garantir_pdf_textual(caminho_pdf)
+                # Tenta garantir que o PDF seja textual
+                caminho_final = garantir_pdf_textual(caminho_pdf)
                 
                 try:
-                    loader = PyPDFLoader(caminho_pdf)
+                    loader = PyPDFLoader(caminho_final)
                     docs = loader.load()
                     if docs:
                         documents.extend(docs)
-                        logging.info(f"PDF carregado: {file} ({len(docs)} páginas)")
-                    else:
-                        logging.warning(f"PDF sem texto válido: {file}")
+                        logging.info(f"Carregado: {file} ({len(docs)} pgs)")
                 except Exception as e:
                     logging.warning(f"Erro ao ler {file}: {e}")
 
+    # 5. Fallback se não houver documentos
     if not documents:
-        logging.info(f"Nenhum documento encontrado para {store_key}")
-        if tid_str:
+        logging.info(f"Nenhum PDF válido encontrado para {store_key}")
+        if t_id:
             _tenant_stores[store_key] = None
         else:
             _global_store = None
         return
 
-    # Divide em chunks
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
-    chunks = splitter.split_documents(documents)
-    chunks = [c for c in chunks if c.page_content and c.page_content.strip()]
-
-    if not chunks:
-        return
-
-    # Cria embeddings e FAISS
+    # 6. Processamento (Chunks + Embeddings + FAISS)
     try:
-        logging.info(f"Gerando embeddings para {store_key}...")
-        embeddings = OllamaEmbeddings(model="nomic-embed-text")
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
+        chunks = splitter.split_documents(documents)
+        chunks = [c for c in chunks if c.page_content and c.page_content.strip()]
+
+        if not chunks:
+            logging.warning(f"Nenhum chunk gerado para {store_key}")
+            return
+
+        logging.info(f"Gerando embeddings para {len(chunks)} chunks ({store_key})...")
+        base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=base_url)
         vstore = FAISS.from_documents(documents=chunks, embedding=embeddings)
         
-        if tid_str:
+        if t_id:
             _tenant_stores[store_key] = vstore
         else:
             _global_store = vstore
-        logging.info(f"FAISS {store_key} inicializado com {len(chunks)} chunks.")
+            
+        logging.info(f"FAISS inicializado com sucesso para {store_key}.")
+        
     except Exception as e:
-        logging.error(f"Erro ao inicializar FAISS for {store_key}: {e}")
-        if tid_str:
+        logging.error(f"Erro crítico no processamento de FAISS ({store_key}): {e}")
+        if t_id:
             _tenant_stores[store_key] = None
         else:
             _global_store = None
@@ -171,6 +167,13 @@ def similarity_search(query: str, tenant_id: str = None, username: str = None, k
         # Garante que a base do usuário esteja inicializada
         init_search(tenant_id=tid_str, username=usr_str)
         t_store = _tenant_stores.get(store_key)
+        
+        # Se não encontrou a store (ou é None), tenta forçar um recarregamento
+        if not t_store:
+            logging.info(f"Store {store_key} vazia ou não encontrada. Forçando reload na busca.")
+            init_search(tenant_id=tid_str, username=usr_str, force_reload=True)
+            t_store = _tenant_stores.get(store_key)
+
         if t_store:
             try:
                 t_res = t_store.similarity_search_with_score(query, k=k)

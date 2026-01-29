@@ -14,7 +14,7 @@ from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from db.database import SessionLocal
 from db.models import Tenant, ChatMessage
-from core.utils import slugify
+from core.utils import slugify, get_tenant_path
 import glob
 from datetime import datetime
 import logging
@@ -61,11 +61,11 @@ def get_current_user_data(credentials: HTTPAuthorizationCredentials = Depends(se
 
 class SearchRequest(BaseModel):
     question: str = Field(..., min_length=1, description="Pergunta a ser buscada na base")
-    k: int = Field(default=2, ge=1, le=10, description="Número de documentos a retornar")
+    k: int = Field(default=4, ge=1, le=10, description="Número de documentos a retornar")
 
 class AskRequest(SearchRequest):
     score_threshold: float = Field(
-        default=1.1, ge=0.0, le=2.0,
+        default=1.5, ge=0.0, le=2.0,
         description="Threshold de score para filtrar documentos (quanto menor, melhor, pois FAISS retorna distância)"
     )
 
@@ -99,19 +99,15 @@ class AskResponse(BaseModel):
     sources: List[SearchResult]
 
 
-def get_tenant_dir(tenant_id: int, tenant_name: str = None) -> str:
-    """Resolve o diretório do inquilino (ID_Nome ou ID)."""
-    tid_str = str(tenant_id)
-    if tenant_name:
-        return os.path.join("data", "uploads", f"{tid_str}_{slugify(tenant_name)}")
-    
-    pattern = os.path.join("data", "uploads", f"{tid_str}_*")
-    matching = glob.glob(pattern)
-    return matching[0] if matching else os.path.join("data", "uploads", tid_str)
+# Removed local get_tenant_dir in favor of core.utils.get_tenant_path
 
 # =========================
 # ENDPOINTS
 # =========================
+
+@router.get("/health_check_custom")
+def health_custom():
+    return {"status": "I AM LIVE AND RELOADED"}
 
 @router.post("/upload")
 async def upload_document(
@@ -143,7 +139,7 @@ async def upload_document(
         # Pasta privada do usuário dentro do inquilino
         tid_str = str(tenant_id)
         usr_str = str(username)
-        tenant_upload_dir = os.path.join(get_tenant_dir(tenant_id, tenant.name), usr_str)
+        tenant_upload_dir = os.path.join(get_tenant_path(tenant_id, tenant.name), usr_str)
         
         logger.info(f"--- UPLOAD DEBUG ---")
         logger.info(f"User Data: {user_data}")
@@ -205,6 +201,7 @@ def ask(payload: AskRequest, user_data: dict = Depends(get_current_user_data)):
     try:
         tenant_id = user_data["tenant_id"]
         username = user_data["username"]
+        
         # Busca isolada por usuário (include_global=False por padrão)
         docs_raw = similarity_search(query=payload.question, tenant_id=tenant_id, username=username, k=payload.k, include_global=False)
 
@@ -301,7 +298,7 @@ def list_files(user_data: dict = Depends(get_current_user_data)):
     tenant_id = user_data.get("tenant_id")
     username = user_data.get("username")
     
-    tenant_upload_dir = os.path.join(get_tenant_dir(tenant_id), str(username))
+    tenant_upload_dir = os.path.join(get_tenant_path(tenant_id), str(username))
     
     if not os.path.exists(tenant_upload_dir):
         return []
@@ -327,7 +324,7 @@ def delete_file(filename: str, user_data: dict = Depends(get_current_user_data))
     if ".." in filename or "/" in filename or "\\" in filename:
         raise HTTPException(status_code=400, detail="Nome de arquivo inválido.")
 
-    tenant_upload_dir = os.path.join(get_tenant_dir(tenant_id), str(username))
+    tenant_upload_dir = os.path.join(get_tenant_path(tenant_id), str(username))
     file_path = os.path.join(tenant_upload_dir, filename)
     ocr_path = file_path.replace(".pdf", "_ocr.pdf")
 
@@ -365,10 +362,13 @@ def get_historico(user_data: dict = Depends(get_current_user_data)):
     try:
         tenant_id = user_data["tenant_id"]
         username = user_data["username"]
-        messages = db.query(ChatMessage).filter(
-            ChatMessage.tenant_id == tenant_id,
-            ChatMessage.usuario == username
-        ).order_by(ChatMessage.created_at.desc()).limit(50).all()
+        role = user_data["role"]
+        
+        query = db.query(ChatMessage).filter(ChatMessage.tenant_id == tenant_id)
+        if role != "admin":
+            query = query.filter(ChatMessage.usuario == username)
+            
+        messages = query.order_by(ChatMessage.created_at.desc()).limit(100).all()
         return [
             {
                 "id": m.id,

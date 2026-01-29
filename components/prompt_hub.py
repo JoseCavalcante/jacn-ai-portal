@@ -1,6 +1,6 @@
 import streamlit as st
+from components.ui import saas_card
 import time
-
 def render_prompt_hub(service, logout_fn):
     st.markdown(f"""
     <div style="margin-bottom: 2.5rem;">

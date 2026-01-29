@@ -131,10 +131,13 @@ def get_historico(user_data: dict = Depends(get_current_user_data)):
     try:
         tenant_id = user_data["tenant_id"]
         username = user_data["username"]
-        prompts = db.query(Prompt).filter(
-            Prompt.tenant_id == tenant_id,
-            Prompt.usuario == username
-        ).order_by(Prompt.created_at.desc()).limit(50).all()
+        role = user_data["role"]
+        
+        query = db.query(Prompt).filter(Prompt.tenant_id == tenant_id)
+        if role != "admin":
+            query = query.filter(Prompt.usuario == username)
+            
+        prompts = query.order_by(Prompt.created_at.desc()).limit(100).all()
         return [
             {
                 "id": p.id,

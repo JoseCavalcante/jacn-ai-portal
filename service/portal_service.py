@@ -10,6 +10,15 @@ class PortalService:
         token = st.session_state.get("token")
         return {"Authorization": f"Bearer {token}"} if token else {}
 
+    def check_health(self):
+        """Verifica se a API está online."""
+        try:
+            # Endpoint dedicado leve sem autenticação
+            res = requests.get(f"{self.api_url}/health", timeout=2)
+            return res.status_code == 200
+        except:
+            return False
+
     def _safe_request(self, method, endpoint, **kwargs):
         """
         Helper para executar chamadas API com tratamento de erro centralizado.
@@ -20,20 +29,28 @@ class PortalService:
             if "headers" in kwargs:
                 headers.update(kwargs.pop("headers"))
             
+            # Timeout padrão de 10s para evitar hangs
+            if "timeout" not in kwargs:
+                kwargs["timeout"] = 10
+                
             res = requests.request(method, url, headers=headers, **kwargs)
             
             # Tratamento global de expiração de token
             if res.status_code == 401:
-                st.error("Sessão expirada. Por favor, faça login novamente.")
-                st.session_state.token = None
-                time.sleep(1)
-                st.rerun()
+                # Evita loop infinito se já estiver na página de login
+                if endpoint != "/auth/login":
+                    st.error("Sessão expirada. Por favor, faça login novamente.")
+                    st.session_state.token = None
+                    time.sleep(1)
+                    st.rerun()
                 
             return res
         except requests.exceptions.ConnectionError:
-            st.error("Erro de conexão: O servidor da API parece estar offline.")
+            st.error("⚠️ Erro de conexão: O servidor da API parece estar offline.")
+        except requests.exceptions.Timeout:
+            st.error("⌛ A requisição demorou muito para responder (Timeout).")
         except Exception as e:
-            st.error(f"Erro inesperado: {str(e)}")
+            st.error(f"❌ Erro inesperado: {str(e)}")
         return None
 
     def login(self, username, password):

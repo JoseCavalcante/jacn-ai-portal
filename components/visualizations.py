@@ -95,6 +95,37 @@ def render_usage_charts(prompt_history, rag_history):
     else:
         col2.info("Sem dados de RAG para o gráfico.")
 
+    # 3. Gráfico de Horários de Pico (Combinado)
+    st.markdown("---")
+    all_data = []
+    if prompt_history:
+        for p in prompt_history:
+            all_data.append({'hour': pd.to_datetime(p['created_at']).hour, 'type': 'Prompt'})
+    if rag_history:
+        for r in rag_history:
+            all_data.append({'hour': pd.to_datetime(r['created_at']).hour, 'type': 'RAG'})
+    
+    if all_data:
+        df_hours = pd.DataFrame(all_data)
+        usage_hours = df_hours.groupby(['hour', 'type']).size().reset_index(name='count')
+        
+        fig_hours = px.bar(usage_hours, x='hour', y='count', color='type',
+                          title='<b>Distribuição de Uso por Hora</b>',
+                          labels={'count': 'Requisições', 'hour': 'Hora do Dia'},
+                          barmode='group',
+                          color_discrete_map={'Prompt': '#6366f1', 'RAG': '#a855f7'})
+        
+        fig_hours.update_layout(
+            font_family="Plus Jakarta Sans",
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(tickmode='linear', tick0=0, dtick=1, color='#94a3b8'),
+            yaxis=dict(showgrid=True, gridcolor='rgba(226, 232, 240, 0.1)', color='#94a3b8'),
+            height=350,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_hours, use_container_width=True)
+
 def render_storage_chart(current_docs, max_docs):
     """
     Gráfico de rosca para ocupação de documentos.

@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import pandas as pd
 
 def render_user_management(service):
     st.markdown("""
@@ -9,7 +10,7 @@ def render_user_management(service):
     </div>
     """, unsafe_allow_html=True)
     
-    tab_reg, tab_pass = st.tabs(["👤 Novo Cadastro", "🔐 Resetar Senha"])
+    tab_reg, tab_pass, tab_monitor = st.tabs(["👤 Novo Cadastro", "🔐 Resetar Senha", "📊 Monitoramento"])
     
     with tab_reg:
         col1, col2 = st.columns([1.5, 1])
@@ -96,6 +97,67 @@ def render_user_management(service):
                 </ul>
             </div>
             """, unsafe_allow_html=True)
+
+    with tab_monitor:
+        from components.ui import metric_card # Ensure imports if needed or rely on top level
+        
+        st.markdown("""
+        <div class="saas-card" style="margin-top: 1rem;">
+            <h3 style="margin-bottom: 1.5rem;">📊 Monitoramento Global</h3>
+            <p style="color: var(--text-muted);">Visão geral do consumo de recursos por usuário da organização.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        try:
+            # Carregar dados completos (Admin recebe tudo)
+            p_res = service.get_prompt_history()
+            r_res = service.get_rag_history()
+            
+            p_data = p_res.json() if p_res and p_res.status_code == 200 else []
+            r_data = r_res.json() if r_res and r_res.status_code == 200 else []
+            
+            if not p_data and not r_data:
+                st.info("Nenhum dado de uso registrado na organização ainda.")
+            else:
+                user_stats = {}
+                
+                for item in p_data:
+                    u = item.get('usuario', 'Desconhecido')
+                    if u not in user_stats: user_stats[u] = {'prompts': 0, 'rag': 0}
+                    user_stats[u]['prompts'] += 1
+                    
+                for item in r_data:
+                    u = item.get('usuario', 'Desconhecido')
+                    if u not in user_stats: user_stats[u] = {'prompts': 0, 'rag': 0}
+                    user_stats[u]['rag'] += 1
+                
+                df_stats = pd.DataFrame.from_dict(user_stats, orient='index').reset_index()
+                df_stats.columns = ['Usuário', 'Ger. Conteúdo (Prompts)', 'Consultas RAG']
+                df_stats['Total Interações'] = df_stats['Ger. Conteúdo (Prompts)'] + df_stats['Consultas RAG']
+                df_stats = df_stats.sort_values(by='Total Interações', ascending=False)
+                
+                st.markdown("### 🏆 Top Usuários Ativos")
+                st.dataframe(
+                    df_stats,
+                    column_config={
+                        "Usuário": st.column_config.TextColumn("Colaborador"),
+                        "Ger. Conteúdo (Prompts)": st.column_config.ProgressColumn("Geração", format="%d", min_value=0, max_value=int(df_stats['Ger. Conteúdo (Prompts)'].max())),
+                        "Consultas RAG": st.column_config.ProgressColumn("Consultas", format="%d", min_value=0, max_value=int(df_stats['Consultas RAG'].max())),
+                        "Total Interações": st.column_config.NumberColumn("Total", format="%d")
+                    },
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                st.divider()
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.metric("Total Prompts", len(p_data))
+                with c2:
+                    st.metric("Total RAG", len(r_data))
+
+        except Exception as e:
+            st.error(f"Erro ao carregar dados de monitoramento: {str(e)}")
 
 def render_password_change(service):
     st.markdown("""

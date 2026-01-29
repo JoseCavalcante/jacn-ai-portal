@@ -40,13 +40,14 @@ def login_page(service):
                 submitted = st.form_submit_button("Acessar Sistema →", use_container_width=True)
                 
                 if submitted:
-                    success, message = service.login(u, p)
-                    if success:
-                        st.success(message)
-                        time.sleep(0.5)
-                        st.rerun()
-                    else:
-                        st.error(message)
+                    with st.spinner("Autenticando na Central de Segurança..."):
+                        success, message = service.login(u, p)
+                        if success:
+                            st.success(message)
+                            time.sleep(0.5)
+                            st.rerun()
+                        else:
+                            st.error(message)
 
         with tab_signup:
             with st.form("signup_form"):
