@@ -180,7 +180,7 @@ def search(msg: str, k: int, user_data: dict = Depends(get_current_user_data)):
         results = [
             SearchResult(
                 title=extrair_titulo_contextual(d["content"]),
-                content=d["content"], 
+                content=d["content"].replace('\n', ' ').strip(), 
                 score=d["score"],
                 source=os.path.basename(d.get("source", "desconhecido")).replace("_ocr.pdf", ".pdf"),
                 page=int(d.get("page", 0)) + 1
@@ -232,7 +232,9 @@ def ask(payload: AskRequest, user_data: dict = Depends(get_current_user_data)):
         for d in filtered_docs_raw:
             source_name = os.path.basename(d.get("source", "desconhecido")).replace("_ocr.pdf", ".pdf")
             page_num = int(d.get("page", 0)) + 1
-            formatted_docs.append(f"[[FONTE: {source_name}, PÁGINA: {page_num}]]\n{d['content']}")
+            # Sanitize content to remove hard line breaks that might confuse the LLM
+            clean_content = d['content'].replace('\n', ' ').strip()
+            formatted_docs.append(f"[[FONTE: {source_name}, PÁGINA: {page_num}]]\n{clean_content}")
 
         context = "\n\n---\n\n".join(formatted_docs)
         

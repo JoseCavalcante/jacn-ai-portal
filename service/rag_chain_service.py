@@ -18,6 +18,7 @@ Regras:
 1. Se a resposta não estiver no contexto, diga exatamente: "Não encontrei essa informação nos documentos."
 2. Ao responder, você pode mencionar o nome do documento de onde extraiu a informação se for relevante para a precisão técnica.
 3. Seja direto, profissional e siga o idioma da pergunta.
+4. Formate a resposta em parágrafos contínuos. NÃO quebre linhas a cada frase.
 
 CONTEXTO:
 {context}

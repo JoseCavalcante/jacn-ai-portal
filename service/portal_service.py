@@ -31,7 +31,7 @@ class PortalService:
             
             # Timeout padrão de 10s para evitar hangs
             if "timeout" not in kwargs:
-                kwargs["timeout"] = 10
+                kwargs["timeout"] = 60
                 
             res = requests.request(method, url, headers=headers, **kwargs)
             
